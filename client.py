@@ -4,7 +4,7 @@ import threading
 import json
 
 BUFF_SIZE = 1024
-server_addr = ('127.0.0.1', 8888)
+server_addr = ('101.76.221.40', 8888)
 username: str
 online = {}
 

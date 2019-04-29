@@ -6,7 +6,7 @@ import json
 online = {}
 
 BUFF_SIZE = 1024
-server_addr = ('127.0.0.1', 8888)
+server_addr = ('101.76.221.40', 8888)
 
 UDP_NORMAL = 0
 UDP_LOGIN = 1
