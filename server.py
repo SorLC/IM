@@ -6,7 +6,9 @@ import json
 online = {}
 
 BUFF_SIZE = 1024
-server_addr = ('101.76.221.40', 8888)
+server_name = socket.getfqdn(socket.gethostname())
+server_ip = socket.gethostbyname(server_name)
+server_addr = (server_ip, 8888)
 
 UDP_NORMAL = 0
 UDP_LOGIN = 1
@@ -67,6 +69,9 @@ def solve(udp):
 if __name__ == '__main__':
     udpServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udpServerSocket.bind(server_addr)
+
+    print("server is running", server_addr)
+
     online['admin'] = server_addr
     SolveThread = threading.Thread(target=solve, args=(udpServerSocket,))
     SolveThread.setDaemon(True)
@@ -77,14 +82,3 @@ if __name__ == '__main__':
     broadcast(udpServerSocket, exit_data)
 
     udpServerSocket.close()
-    # # ReceiveThread = threading.Thread(target=receive, args=(udpCliSocket, ))
-    #
-    # while True:
-    #     data, add = udpCliSocket.recvfrom(BUFF_SIZE)
-    #     if not data:
-    #         break
-    #     print(f"from {add}", data.decode())
-    #     res = input("say>")
-    #     udpCliSocket.sendto(f"[{time.ctime()}] {res}".encode(), add)
-    #
-    # udpCliSocket.close()
