@@ -6,8 +6,8 @@ import threading
 import json
 
 from util.tools import *
-from PyQt5.QtCore import QThread, pyqtSignal, QRect
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtCore import QThread, QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication
 
 
 class Receiver(QThread):
@@ -28,14 +28,12 @@ class Receiver(QThread):
                 self.normalMessage.emit(data, addr)
 
 
-class MessageSolver(QMainWindow):
+class MessageSolver(QObject):
     online = {}
     __online_tmp = {}
 
     def __init__(self):
-        QMainWindow.__init__(self)
-        self.setGeometry(300, 300, 400, 50)
-        self.setWindowTitle('IM - server')
+        QObject.__init__(self)
 
         server_name = socket.getfqdn(socket.gethostname())
         server_ip = socket.gethostbyname(server_name)
@@ -45,9 +43,7 @@ class MessageSolver(QMainWindow):
         self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.udp.bind(self.addr)
 
-        label1 = QLabel(self)
-        label1.setGeometry(QRect(25, 0, 400, 50))
-        label1.setText('Server is running on (%s, %d)' % (self.addr[0], self.addr[1]))
+        print("Server is running on (%s, %s)" % (self.addr[0], self.addr[1]))
 
         # 轮询接受消息
         self.msg_receiver = Receiver(self.udp)
@@ -62,7 +58,7 @@ class MessageSolver(QMainWindow):
 
     # 检查存活
     def check_alive_sender(self):
-        self.online_tmp.clear()
+        self.__online_tmp.clear()
         self.__online_tmp['admin'] = self.addr
         data = generate_json('admin', '', '', UDP_CHECK_ALIVE)
         self.__broadcast(data)
@@ -89,10 +85,10 @@ class MessageSolver(QMainWindow):
             dest = data['to']
             dest_addr = self.online.get(dest, None)
             if dest == 'admin':
-                dt = generate_json('admin', data['from'], f'hello, it is {time.ctime()} now.', UDP_NORMAL, data['id'])
+                dt = generate_json('admin', data['from'], 'hello, it is (%s) now.' % time.ctime(), UDP_NORMAL, data['id'])
                 dest_addr = addr
             elif dest_addr is None:
-                dt = generate_json('admin', data['from'], 'no such user', UDP_ERROR, data['id'])
+                dt = generate_json('admin', data['from'], 'user is offline', UDP_ERROR, data['id'])
                 dest_addr = addr
             else:
                 dt = data
@@ -140,8 +136,5 @@ class MessageSolver(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
     service = MessageSolver()
-    service.show()
-
     sys.exit(app.exec_())

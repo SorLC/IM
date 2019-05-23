@@ -79,7 +79,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # 显示信息
     def __show_msg(self):
-        if not self.history_msg.get(self.current_name, []):
+        if self.history_msg.get(self.current_name, None) is None:
             return
         content = ""
         for tup in self.history_msg[self.current_name]:
@@ -121,13 +121,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 data['to'] = 'admin'
                 self.msg.send(data)
         else:
-            # 添加历史记录
-            self.history_msg[data['from']].append((data['time'], data['from'], data['msg']))
-            # 刷新当前界面
-            self.__show_msg()
-            self.statusbar.showMessage("A message from " + data['from'])
+            if data['flag'] < 0:
+                QtWidgets.QMessageBox.information(self, "Error", data['msg'])
+                if data['flag'] == UDP_SERVER_EXIT:
+                    self.setstatus(False)
+            else:
+                # 添加历史记录
+                self.history_msg[data['from']].append((data['time'], data['from'], data['msg']))
+                # 刷新当前界面
+                self.__show_msg()
+                self.statusbar.showMessage("A message from " + data['from'])
 
     def __get(self, data):
-        # print("receive", data)
         solve_received_msg_thread = threading.Thread(target=self.__solve_received_msg, args=(data,))
         solve_received_msg_thread.start()
