@@ -39,8 +39,8 @@ class MessageSolver(QMainWindow):
 
         server_name = socket.getfqdn(socket.gethostname())
         server_ip = socket.gethostbyname(server_name)
-        # server_ip = '127.0.0.1'
         self.addr = (server_ip, 8888)
+
         # 建立udp的socket
         self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.udp.bind(self.addr)
