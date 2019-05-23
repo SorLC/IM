@@ -35,8 +35,9 @@ class MessageSolver(QObject):
     def __init__(self):
         QObject.__init__(self)
 
-        server_name = socket.getfqdn(socket.gethostname())
-        server_ip = socket.gethostbyname(server_name)
+        # server_name = socket.getfqdn(socket.gethostname())
+        # server_ip = socket.gethostbyname(server_name)
+        server_ip = "192.168.1.103"
         self.addr = (server_ip, 8888)
 
         # 建立udp的socket
@@ -85,7 +86,8 @@ class MessageSolver(QObject):
             dest = data['to']
             dest_addr = self.online.get(dest, None)
             if dest == 'admin':
-                dt = generate_json('admin', data['from'], 'hello, it is (%s) now.' % time.ctime(), UDP_NORMAL, data['id'])
+                dt = generate_json('admin', data['from'], 'hello, it is (%s) now.' % time.ctime(), UDP_NORMAL,
+                                   data['id'])
                 dest_addr = addr
             elif dest_addr is None:
                 dt = generate_json('admin', data['from'], 'user is offline', UDP_ERROR, data['id'])

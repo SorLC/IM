@@ -1,7 +1,6 @@
 # -*- coding:utf8 -*-
 import socket
 import json
-import threading
 
 from util.RegisterWindow import RegisterWindow
 from util.MessageSolver import MessageSolver
@@ -75,11 +74,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         name = index.data()
         self.current_name = name
         self.label_name.setText(name)
-        self.__show_msg()
+        self.show_msg()
 
     # 显示信息
-    def __show_msg(self):
-        if self.history_msg.get(self.current_name, None) is None:
+    def show_msg(self):
+        if not hasattr(self, "current_name") or self.history_msg.get(self.current_name, None) is None:
             return
         content = ""
         for tup in self.history_msg[self.current_name]:
@@ -94,7 +93,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.cnt += 1
             data = generate_json(self.name, self.current_name, msg, UDP_NORMAL, self.cnt)
             self.history_msg[data['to']].append((data['time'], data['from'], data['msg']))
-            self.__show_msg()
+            self.show_msg()
             self.msg.send(data)
 
     # 处理接受到的信息
@@ -129,9 +128,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 # 添加历史记录
                 self.history_msg[data['from']].append((data['time'], data['from'], data['msg']))
                 # 刷新当前界面
-                self.__show_msg()
+                self.show_msg()
                 self.statusbar.showMessage("A message from " + data['from'])
 
     def __get(self, data):
-        solve_received_msg_thread = threading.Thread(target=self.__solve_received_msg, args=(data,))
-        solve_received_msg_thread.start()
+        self.__solve_received_msg(data)
