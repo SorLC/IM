@@ -7,6 +7,23 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QTextCursor
+
+
+class MyTextEdit(QtWidgets.QTextEdit):
+    def __init__(self, parent):
+        QtWidgets.QTextEdit.__init__(self, parent)
+        self.parent = parent
+
+    def keyPressEvent(self, event):
+        QtWidgets.QTextEdit.keyPressEvent(self, event)
+        if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+            if event.modifiers() == QtCore.Qt.ControlModifier:
+                self.append('')
+                self.moveCursor(QTextCursor.StartOfLine)
+                event.accept()
+            else:
+                event.ignore()
 
 
 class Ui_MainWindow(object):
@@ -17,10 +34,10 @@ class Ui_MainWindow(object):
         MainWindow.setMinimumSize(QtCore.QSize(810, 600))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.msg_send = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.msg_send = MyTextEdit(self.centralwidget)
         self.msg_send.setGeometry(QtCore.QRect(230, 380, 571, 121))
         self.msg_send.setObjectName("msg_send")
-        self.msg_recv = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.msg_recv = QtWidgets.QTextEdit(self.centralwidget)
         self.msg_recv.setGeometry(QtCore.QRect(230, 40, 571, 321))
         self.msg_recv.setObjectName("msg_recv")
         self.msg_recv.setReadOnly(True)

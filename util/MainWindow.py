@@ -2,6 +2,8 @@
 import socket
 import json
 
+from PyQt5.QtGui import QTextCursor
+
 from util.RegisterWindow import RegisterWindow
 from util.MessageSolver import MessageSolver
 from ui.mainWindow import Ui_MainWindow
@@ -84,12 +86,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for tup in self.history_msg[self.current_name]:
             content += tup[0] + ':\n' + tup[1] + " say >>> " + tup[2] + '\n'
         self.msg_recv.setPlainText(content)
+        self.msg_recv.moveCursor(QTextCursor.End)
+
+    def keyPressEvent(self, event):
+        if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+            self.__send_msg()
 
     # 发送消息
     def __send_msg(self):
         if hasattr(self, 'current_name'):
-            msg = self.msg_send.toPlainText()
+            msg = self.msg_send.toPlainText().strip()
             self.msg_send.setPlainText('')
+            if msg == "":
+                return
             self.cnt += 1
             data = generate_json(self.name, self.current_name, msg, UDP_NORMAL, self.cnt)
             self.history_msg[data['to']].append((data['time'], data['from'], data['msg']))
