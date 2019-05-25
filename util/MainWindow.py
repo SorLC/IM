@@ -92,6 +92,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
             self.__send_msg()
 
+    def closeEvent(self, event):
+        self.logout()
+        event.accept()
+
     # 发送消息
     def __send_msg(self):
         if hasattr(self, 'current_name'):
