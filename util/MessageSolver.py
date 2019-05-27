@@ -16,11 +16,10 @@ class MessageSolver(QThread):
         while True:
             try:
                 data_json, addr = self.udp.recvfrom(BUFF_SIZE)
-                data = json.loads(data_json.decode())
+                data = eval(data_json.decode())
                 self.receiveMessage.emit(data)
             except ConnectionResetError:
                 self.receiveMessage.emit(generate_json("admin", '', "Server is offline", UDP_SERVER_EXIT))
 
     def send(self, data):
-        # print("send", data)
-        self.udp.sendto(json.dumps(data).encode(), self.server_addr)
+        self.udp.sendto(str(data).encode(), self.server_addr)

@@ -1,8 +1,9 @@
 # -*- coding:utf8 -*-
 import socket
 import json
-
+import os
 from PyQt5.QtGui import QTextCursor
+from PyQt5.QtWidgets import QFileDialog
 
 from util.RegisterWindow import RegisterWindow
 from util.MessageSolver import MessageSolver
@@ -16,6 +17,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     current_name: str
     cnt = 0
     register_id = -1
+    file = {}
 
     def __init__(self, server_ip):
         QtWidgets.QMainWindow.__init__(self)
@@ -29,6 +31,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.user.doubleClicked.connect(self.__select_user)
 
         self.send.clicked.connect(self.__send_msg)
+        self.send_file.clicked.connect(self.__send_file)
 
         # 建立udp的socket
         self.server_addr = (server_ip, 8888)
@@ -77,6 +80,43 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_name = name
         self.label_name.setText(name)
         self.show_msg()
+
+    def __open_file_window(self):
+        return QFileDialog.getOpenFileName(self, '选择文件', '', "所有文件(*.*)")
+
+    def __getFileName(self, path):
+        n = len(path)
+        for i in range(n - 1, -1, -1):
+            if path[i] == '/' or path[i] == '\\':
+                return path[i + 1:]
+
+    # 发送文件
+    def __send_file(self):
+        if not hasattr(self, 'current_name'):
+            return
+        # 选择文件
+        file_path, file_type = self.__open_file_window()
+        f = open(file_path, 'rb')
+        # 获取文件名
+        file_name = self.__getFileName(file_path)
+        self.cnt += 1
+        data = generate_json(self.name, self.current_name, file_name, UDP_FILE_START, self.cnt)
+        cnt = 0
+        while True:
+            if cnt == 0:
+                self.msg.send(data)
+                cnt += 1
+                continue
+            file_data = f.read(BUFF_SIZE // 2)
+            if str(file_data) == "b''":
+                data['flag'] = UDP_FILE_END
+                self.msg.send(data)
+                break
+            else:
+                data['msg'] = file_data
+                data['flag'] = UDP_FILE
+                self.msg.send(data)
+            cnt += 1
 
     # 显示信息
     def show_msg(self):
@@ -137,12 +177,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 QtWidgets.QMessageBox.information(self, "Error", data['msg'])
                 if data['flag'] == UDP_SERVER_EXIT:
                     self.setstatus(False)
-            else:
+            elif data['flag'] == UDP_NORMAL:
                 # 添加历史记录
                 self.history_msg[data['from']].append((data['time'], data['from'], data['msg']))
                 # 刷新当前界面
                 self.show_msg()
                 self.statusbar.showMessage("A message from " + data['from'])
+            else:
+                if data['flag'] == UDP_FILE_START:
+                    file_name = "save_" + str(data['msg'])
+                    self.file[data['id']] = open(file_name, "wb+")
+                elif data['flag'] == UDP_FILE_END:
+                    self.file[data['id']].close()
+                elif data['flag'] == UDP_FILE:
+                    file_data = data['msg']
+                    self.file[data['id']].write(file_data)
 
     def __get(self, data):
         self.__solve_received_msg(data)

@@ -9,8 +9,11 @@ UDP_ERROR = -1
 UDP_TIMEOUT = -2
 UDP_SERVER_EXIT = -3
 UDP_CHECK_ALIVE = 3
+UDP_FILE = 4
+UDP_FILE_END = 5
+UDP_FILE_START = 6
 
-BUFF_SIZE = 1024
+BUFF_SIZE = 2048
 
 
 def generate_json(src, dest, msg, flag, _id=0):

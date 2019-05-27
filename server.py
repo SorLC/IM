@@ -21,7 +21,7 @@ class Receiver(QThread):
     def run(self):
         while True:
             data_json, addr = self.udp.recvfrom(BUFF_SIZE)
-            data = json.loads(data_json.decode())
+            data = eval(data_json.decode())
             if data['flag'] == UDP_CHECK_ALIVE:
                 self.checkAlive.emit(data['from'], addr)
             else:
@@ -82,7 +82,7 @@ class MessageSolver(QObject):
     def __normal_msg(self, data, addr):
         print(data, addr)
         # 正常会话
-        if data['flag'] == UDP_NORMAL:
+        if data['flag'] in [UDP_NORMAL, UDP_FILE_START, UDP_FILE, UDP_FILE_END]:
             dest = data['to']
             dest_addr = self.online.get(dest, None)
             if dest == 'admin':
@@ -125,7 +125,7 @@ class MessageSolver(QObject):
 
     # 发消息
     def __send(self, data, addr):
-        self.udp.sendto(json.dumps(data).encode(), addr)
+        self.udp.sendto(str(data).encode(), addr)
 
     # 广播
     def __broadcast(self, data):
